@@ -1,151 +1,113 @@
-Assignment 3: Real-Time AI Code Review Bot | Hiring Assignment — AI-First Full Stack Developer
+# AI-Code-Review-Bot: Real-time, polyglot code analysis.
 
-Confidential — For Candidate Use Only | Page 1
-HIRING ASSIGNMENT
-Assignment 3
+A highly responsive, intelligent code review platform that provides zero-latency, streaming feedback on source code across multiple programming languages.
 
-Real-Time AI Code Review Bot
+## Architecture Overview
 
-Role AI-First Full Stack Developer (Fresher)
-Stack Node.js + TypeScript (Backend) · Python (AI Service) ·
+The system is designed as a highly scalable **3-tier architecture**, prioritizing real-time feedback and clear separation of concerns:
 
-WebSockets
-Duration 4–5 Days
-Difficulty Mid-Level Problem
-Submission GitHub Repository + Live Demo Link
+1. **Frontend (React + TypeScript):** A sleek, polyglot editor interface utilizing Monaco Editor for a native IDE feel.
+2. **Orchestrator (Node.js + TypeScript):** The central state manager that handles persistent WebSocket connections, acts as an API gateway, and persists historical sessions.
+3. **AI Service (Python + FastAPI):** A dedicated microservice handling asynchronous LLM interactions. It utilizes the **Groq API (Llama 3.3-70B)** to achieve lightning-fast inference and streams structured JSON responses via Server-Sent Events (SSE).
 
-Overview
-Build a real-time AI code review tool. A developer pastes or uploads a code snippet, and the
-system streams back a structured review — categorising issues into bugs, style problems, and
-security concerns — in real time. A Node.js/TypeScript backend manages sessions via
-WebSockets, a Python microservice handles LLM communication, and a TypeScript frontend
-renders streaming feedback in a split-pane editor.
-This tests your understanding of real-time systems, microservice communication, TypeScript
-discipline, and the ability to produce structured LLM outputs at speed.
-Problem Statement
-Code review is time-consuming and inconsistent. Your task is to build an AI-powered bot that
-gives developers instant, structured feedback on any code snippet — streamed live as the
-model generates it. Sessions should be persistent so a user can view past reviews.
-Functional Requirements
-1. Code Input UI (Frontend — TypeScript/React)
-• Split-pane layout: left pane is a code editor (use CodeMirror or Monaco Editor), right
-pane shows AI feedback
-• Support paste or file upload (.js, .ts, .py, .go, .java, etc.)
-• Language auto-detection (show detected language as a badge)
-• &#39;Review Code&#39; button triggers a WebSocket connection for streaming
-• Show a &#39;Reviewing...&#39; animated indicator while streaming
-2. WebSocket Session Manager (Node.js / TypeScript)
-• On connection, assign a unique session ID (UUID)
+## Key Features
 
-Assignment 3: Real-Time AI Code Review Bot | Hiring Assignment — AI-First Full Stack Developer
+- **Real-Time Streaming:** Seamlessly integrates native WebSockets and Server-Sent Events (SSE) to pipe AI feedback directly from the LLM down to the client with near-zero latency.
+- **Polyglot Support:** Accurately processes and reviews code in Go, Python, Java, JavaScript, and TypeScript.
+- **Monaco Editor Integration:** Provides a rich, native IDE experience featuring inline annotations, context-aware hover tooltips, and severity-colored gutters for bugs, security vulnerabilities, and style issues.
+- **Session Persistence:** Leverages `better-sqlite3` to securely store historical review sessions, allowing users to asynchronously reload past snippets and feedback via the sidebar.
 
-Confidential — For Candidate Use Only | Page 2
-• Accept incoming code payload via WebSocket message
-• Forward code to the Python AI service via HTTP POST
-• Stream the AI response back to the client as chunks arrive
-• Persist each review session to SQLite: session ID, code snippet, full review, timestamp
-• Expose REST endpoints: GET /sessions (list all), GET /sessions/:id (get one review)
-3. AI Review Service (Python / FastAPI)
-• Accept POST /review with code and language
-• Call LLM with a structured prompt that requests a JSON review object
-• Review schema: { bugs: [...], style: [...], security: [...], summary: string, score: number }
-• Stream the response back using Server-Sent Events (SSE) or chunked response
-• The Node backend consumes this stream and forwards to the WebSocket client
-4. Review History UI
-• Sidebar listing past review sessions (language, date, score)
-• Click a past session to reload the code and its review in the split pane
-• Allow deleting a session
+## WebSocket Flow
 
-WebSocket Flow Diagram
-Client → WS Connect → Node.js assigns session ID
-Client → sends { code, language } via WS message
-Node.js → POST /review to Python AI service
-Python streams chunks → Node.js forwards each chunk → Client renders live
-Node.js → saves completed review to SQLite
-Client → receives done event → review finalised
+The core value proposition relies on bypassing the standard request-response HTTP cycle in favor of full-duplex streams.
 
-Technical Specifications
-Area Requirement
-WebSockets Use ws or socket.io in Node.js; native WebSocket API in React
-Streaming Python uses FastAPI StreamingResponse or SSE; Node.js pipes to
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Client as React Client
+    participant Node as Node.js Orchestrator
+    participant Python as FastAPI Service
+    participant LLM as Groq LLM
 
-WS client
+    Client->>Node: Establish WebSocket Connection
+    Node-->>Client: { type: 'CONNECTED', sessionId: UUID }
+    
+    Client->>Node: { code, language }
+    Node->>Python: POST /review (HTTP)
+    Python->>LLM: Generate Stream (Llama 3.3-70B)
+    
+    loop Streaming Generation
+        LLM-->>Python: Raw Text Chunk
+        Python-->>Node: SSE Data Chunk
+        Node-->>Client: WS { type: 'REVIEW_CHUNK', payload: string }
+    end
+    
+    Python-->>Node: SSE [DONE]
+    Node->>Node: Parse JSON & Persist to SQLite
+    Node-->>Client: WS { type: 'REVIEW_COMPLETE', payload: JSON }
+```
 
-TypeScript Strict mode enabled; all WS message types must be typed interfaces
-AI Prompting Prompt must enforce JSON schema output — use function calling or
+## Tech Stack
 
-JSON mode
+- **AI Service:** Python, FastAPI, Groq (Llama-3.3-70b-versatile)
+- **Backend:** Node.js, TypeScript, `ws` (WebSockets), `better-sqlite3`
+- **Frontend:** React, TypeScript, Vite, Monaco Editor, Tailwind CSS v4, Lucide Icons
 
-Assignment 3: Real-Time AI Code Review Bot | Hiring Assignment — AI-First Full Stack Developer
+## Setup Instructions
 
-Confidential — For Candidate Use Only | Page 3
+Ensure you have **Node.js (v18+)** and **Python 3.10+** installed.
 
-Storage SQLite via better-sqlite3 (Node) — simple schema: sessions +
+### 1. Setup the AI Service (Python)
+Navigate to the AI service directory and install the required dependencies:
+```bash
+cd ai-service
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+```
+Start the FastAPI server:
+```bash
+fastapi dev main.py
+```
 
-reviews tables
+### 2. Setup the Backend Orchestrator (Node.js)
+Navigate to the backend directory and start the orchestrator:
+```bash
+cd backend
+npm install
+npm run dev
+```
 
-Error Handling Graceful WS disconnect handling; LLM timeout fallback message to
+### 3. Setup the Frontend (React)
+Navigate to the frontend directory and start the Vite development server:
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-client
+## Environment Variables
 
-Bonus Features (Optional)
-• GitHub PR URL input: fetch the diff automatically via GitHub API and review it
-• Inline annotations: show bug and security markers on the code editor lines
-• &#39;Fix this bug&#39; button on each issue — triggers a second LLM call to suggest a fix
-• WebSocket reconnection logic with session restoration
-Free Hosting Guide
-Python AI Service — Render.com
-• Push Python FastAPI service to GitHub
-• Render → New Web Service → set start command: uvicorn main:app --host 0.0.0.0 --
-port $PORT
-• Add OPENAI_API_KEY (or equivalent) in Render environment variables
-• Free tier: adequate for demo; note 50-second request timeout on free Render instances
-Node.js + TypeScript Backend — Railway.app
-• Railway handles Node.js + WebSocket servers better than Render&#39;s free tier (no timeout
-on WS connections)
-• railway.app → New Project → Deploy from GitHub → select backend subfolder
-• Set start command: node dist/index.js; add PYTHON_SERVICE_URL in Railway env
-vars
-• SQLite file persists in Railway&#39;s ephemeral disk — note: resets on redeploy (acceptable
-for demo)
-Frontend — Vercel
-• Connect React app repo to Vercel; set VITE_WS_URL to your Railway WebSocket URL
-(ws://...)
-• Note: Vercel serves HTTPS, so your WebSocket server must support WSS (Railway
-provides this automatically)
-• Auto-deploys on every push to main
+You must configure the `.env` files in their respective directories before starting the services.
 
-Evaluation Criteria
+**`/ai-service/.env`**
+```env
+# Groq API Key for LLM Inference
+GROQ_API_KEY=gsk_your_groq_api_key_here
+```
 
-Assignment 3: Real-Time AI Code Review Bot | Hiring Assignment — AI-First Full Stack Developer
+**`/backend/.env`**
+```env
+# HTTP Port for the Backend Service
+PORT=3000
 
-Confidential — For Candidate Use Only | Page 4
-Criteria Weight What We Look For
-WebSocket + Streaming 30% Real-time chunks, session
-management, reconnect handling
-TypeScript Discipline 25% Strict types, WS message interfaces, no
+# URI of the Python AI Microservice
+PYTHON_SERVICE_URL=http://localhost:8000
+```
 
-implicit any
-
-Prompt Engineering 20% JSON schema enforcement, category
-
-separation, score logic
-
-Microservice Design 15% Clean Python/Node boundary, error
-propagation, SSE/stream piping
-README + Architecture 10% Flow diagram, .env.example, clear
-
-setup steps, demo link
-
-Submission Instructions
-1. Push all code to a public GitHub repository named ai-code-review-bot
-2. Recommended structure: /ai-service (Python), /backend (Node.js/TS), /frontend
-(React/TS)
-3. Include a README.md with: WebSocket flow diagram, .env.example for both services,
-setup steps, live demo URL
-4. Deploy AI service to Render, Node backend to Railway, frontend to Vercel
-5. Submit: GitHub URL + Live Demo URL via the provided form
-
-Note: During the interview, we will review your TypeScript type definitions for WebSocket messages and
-ask you to explain your streaming architecture. Ensure your WS message types are clean, well-named
-interfaces — this will be a key discussion point."# ai-code-review-bot" 
+**`/frontend/.env`**
+```env
+# URLs targeting the Node.js Backend
+VITE_WS_URL=ws://localhost:3000
+VITE_API_URL=http://localhost:3000
+```
