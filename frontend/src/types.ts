@@ -35,7 +35,7 @@ export interface ReviewSession {
   id: string;
   codeSnippet: string;
   language?: string;
-  review: string; // The backend saves it as a JSON string, we'll parse it
+  review: string;
   timestamp?: string;
   created_at?: string;
 }

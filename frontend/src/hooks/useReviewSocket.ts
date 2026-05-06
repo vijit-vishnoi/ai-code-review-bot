@@ -8,7 +8,7 @@ export function useReviewSocket() {
   const [structuredReview, setStructuredReview] = useState<ReviewCompleteMessage['payload'] | null>(null);
   const [error, setError] = useState<string | null>(null);
   
-  // useRef prevents the "Stale Closure" bug by always pointing to the active socket
+
   const socketRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
@@ -31,7 +31,7 @@ export function useReviewSocket() {
           setRawStreamText(prev => prev + message.payload);
         } else if (message.type === 'REVIEW_COMPLETE') {
           setStructuredReview(message.payload);
-          setRawStreamText(""); // Clear raw stream once complete
+          setRawStreamText("");
           setIsReviewing(false);
         } else if (message.type === 'ERROR') {
           setError(message.payload.message);
@@ -47,13 +47,13 @@ export function useReviewSocket() {
     };
 
     socket.onerror = (e) => {
-      // Prevent spamming the UI with errors during dev hot-reloads
+
       if (socket.readyState !== WebSocket.CLOSED) {
         console.error("WebSocket error", e);
       }
     };
 
-    // Cleanup unmounts the old socket cleanly
+
     return () => {
       socket.close();
     };
@@ -67,7 +67,7 @@ export function useReviewSocket() {
 
     const currentSocket = socketRef.current;
 
-    // Check the live ref to ensure it's open
+
     if (currentSocket && currentSocket.readyState === WebSocket.OPEN) {
       const message: ClientMessage = {
         type: 'REVIEW_REQUEST',

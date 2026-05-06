@@ -68,7 +68,7 @@ export const Sidebar = ({ onSelectSession, onNewChat }: SidebarProps) => {
                     {(() => {
                       const dateStr = session.created_at || session.timestamp || '';
                       if (!dateStr) return 'Unknown';
-                      // SQLite sometimes returns "YYYY-MM-DD HH:MM:SS", we need a "T" separator
+
                       const date = new Date(dateStr.replace(' ', 'T') + 'Z');
                       if (isNaN(date.getTime())) return 'Invalid Date';
                       return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });

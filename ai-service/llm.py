@@ -2,8 +2,7 @@ import os
 import json
 from groq import Groq
 
-# Initialize the client. 
-# It will automatically pick up GROQ_API_KEY from the environment if present.
+
 client = Groq()
 
 system_instruction = """
@@ -24,7 +23,7 @@ def get_review_stream(code: str, language: str):
     prompt = f"Language: {language}\n\nCode to review:\n{code}"
     
     try:
-        # Use Groq's fast Llama 3 model with JSON mode and streaming
+
         stream = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
@@ -35,7 +34,7 @@ def get_review_stream(code: str, language: str):
             response_format={"type": "json_object"}
         )
         
-        # Yield Server-Sent Events (SSE) format
+
         for chunk in stream:
             if chunk.choices and chunk.choices[0].delta.content:
                 content = chunk.choices[0].delta.content

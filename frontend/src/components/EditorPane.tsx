@@ -36,7 +36,6 @@ export const EditorPane = ({
   useEffect(() => {
     if (!editorRef.current || !monacoRef.current) return;
 
-    // Completely clear existing decorations first
     decorationsRef.current = editorRef.current.deltaDecorations(decorationsRef.current, []);
 
     if (!structuredReview) {
@@ -78,19 +77,19 @@ export const EditorPane = ({
       structuredReview.bugs,
       'bg-red-500/20',
       'bg-red-500 rounded-full w-2 h-2 ml-1 mt-1.5',
-      '#ef4444' // red-500
+      '#ef4444'
     );
     addDecorations(
       structuredReview.security,
       'bg-yellow-500/20',
       'bg-yellow-500 rounded-full w-2 h-2 ml-1 mt-1.5',
-      '#eab308' // yellow-500
+      '#eab308'
     );
     addDecorations(
       structuredReview.style,
       'underline decoration-blue-400 decoration-wavy',
       'bg-blue-400 rounded-full w-2 h-2 ml-1 mt-1.5',
-      '#60a5fa' // blue-400
+      '#60a5fa'
     );
 
     decorationsRef.current = editorRef.current.deltaDecorations(

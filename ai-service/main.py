@@ -9,7 +9,6 @@ from llm import get_review_stream
 
 app = FastAPI()
 
-# Add CORSMiddleware for frontend-to-AI direct communication debugging
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

@@ -16,7 +16,7 @@ const pythonServiceUrl = process.env.PYTHON_SERVICE_URL || 'http://localhost:800
 app.use(cors());
 app.use(express.json());
 
-// REST Endpoints
+
 app.get('/sessions', (req, res) => {
     try {
         const sessions = dbHelpers.getAllSessions();
@@ -54,13 +54,13 @@ wss.on('connection', (ws) => {
     const sessionId = uuidv4();
     console.log(`New WS connection established: ${sessionId}`);
 
-    // Immediately send ConnectionEstablishedMessage
+
     sendMessage(ws, {
         type: 'CONNECTION_ESTABLISHED',
         payload: { sessionId }
     });
 
-    // We keep track of the abort controller for this session to cancel the fetch if needed
+
     let fetchAbortController: AbortController | null = null;
     let timeoutId: NodeJS.Timeout | null = null;
 
@@ -84,7 +84,7 @@ wss.on('connection', (ws) => {
             const { code, language } = message.payload;
             console.log(`Review request for session ${sessionId} (${language})`);
             
-            // Save initial session state to DB
+
             try {
                 dbHelpers.createSession(sessionId, code, language);
             } catch (err) {
@@ -93,7 +93,7 @@ wss.on('connection', (ws) => {
 
             fetchAbortController = new AbortController();
             
-            // Set 30 seconds timeout
+
             timeoutId = setTimeout(() => {
                 if (fetchAbortController) {
                     console.log(`LLM Request timeout for session ${sessionId}`);
@@ -126,7 +126,7 @@ wss.on('connection', (ws) => {
                 let done = false;
                 let fullReviewJson = '';
 
-                // SSE buffering
+
                 let buffer = '';
 
                 while (!done) {
@@ -136,14 +136,14 @@ wss.on('connection', (ws) => {
                     if (value) {
                         buffer += decoder.decode(value, { stream: !done });
                         
-                        // Parse SSE format: data: {...}\n\n
+
                         let boundary = buffer.indexOf('\n\n');
                         while (boundary !== -1) {
                             const chunk = buffer.slice(0, boundary);
-                            buffer = buffer.slice(boundary + 2); // remove processed chunk + \n\n
+                            buffer = buffer.slice(boundary + 2);
                             
                             if (chunk.startsWith('data: ')) {
-                                const dataPayload = chunk.slice(6).trim(); // remove 'data: ' prefix
+                                const dataPayload = chunk.slice(6).trim();
                                 
                                 if (dataPayload === '[DONE]') {
                                     continue;
@@ -162,7 +162,7 @@ wss.on('connection', (ws) => {
                     }
                 }
 
-                // Stream ended, parse final aggregated JSON
+
                 clearTimeout(timeoutId);
                 
                 try {
@@ -176,10 +176,10 @@ wss.on('connection', (ws) => {
                         return;
                     }
                     
-                    // Save to DB
+
                     dbHelpers.saveReview(sessionId, fullReviewJson);
                     
-                    // Send REVIEW_COMPLETE
+
                     sendMessage(ws, {
                         type: 'REVIEW_COMPLETE',
                         payload: {
@@ -202,7 +202,7 @@ wss.on('connection', (ws) => {
 
             } catch (error: any) {
                 if (error.name === 'AbortError' || error === 'Timeout') {
-                    // Handled above in timeout or disconnect
+
                 } else {
                     console.error(`Error communicating with Python service for session ${sessionId}:`, error);
                     sendMessage(ws, {

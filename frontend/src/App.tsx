@@ -37,13 +37,13 @@ function App() {
     setIsLoadingSession(true);
     
     try {
-      // The backend stores the review as a JSON string
+
       let parsedReview = null;
-      // Use any to bypass TS complaining about optional properties not in type if they exist at runtime
+
       let sessionCode = session.codeSnippet || (session as any).code || '';
       let sessionReview = session.review || (session as any).review_json;
 
-      // If review is missing, try to fetch full session from database
+
       if (!sessionReview) {
         const res = await fetch(`http://localhost:3000/sessions/${session.id}`);
         if (res.ok) {
@@ -64,13 +64,13 @@ function App() {
         parsedReview = sessionReview;
       }
       
-      // Sync code and structured review simultaneously
+
       setCode(sessionCode);
       setStructuredReview(parsedReview);
       setRawStreamText('');
     } catch (err) {
       console.error('Failed to parse past session review', err);
-      // Fallback safe values
+
       setCode(session.codeSnippet || (session as any).code || '');
       setStructuredReview(null);
     } finally {

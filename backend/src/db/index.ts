@@ -1,12 +1,12 @@
 import Database from 'better-sqlite3';
 import path from 'path';
 
-// Define the absolute path for the SQLite database file
+
 const dbPath = path.resolve(__dirname, '../../database.sqlite');
 
 const db = new Database(dbPath, { verbose: console.log });
 
-// Initialize the single sessions table
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS sessions (
     id TEXT PRIMARY KEY,
@@ -25,7 +25,7 @@ export interface SessionRecord {
   created_at: string;
 }
 
-// Prepare statements
+
 const insertSessionStmt = db.prepare(`
   INSERT INTO sessions (id, code, language)
   VALUES (@id, @code, @language)
