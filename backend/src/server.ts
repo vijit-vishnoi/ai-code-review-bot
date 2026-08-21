@@ -19,7 +19,7 @@ app.use(express.json());
 
 app.get('/sessions', (req, res) => {
     try {
-        const sessions = dbHelpers.getAllSessions();
+        const sessions = dbHelpers.getAllSessions()
         res.json(sessions)
     } catch (err) {
         console.error('Error fetching sessions:', err);
