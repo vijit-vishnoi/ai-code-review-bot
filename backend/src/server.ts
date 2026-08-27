@@ -20,7 +20,7 @@ app.use(express.json());
 app.get('/sessions', (req, res) => {
     try {
         const sessions = dbHelpers.getAllSessions()
-        res.json(sessions)
+        res.json(sessions);
     } catch (err) {
         console.error('Error fetching sessions:', err);
         res.status(500).json({ error: 'Internal server error' });
